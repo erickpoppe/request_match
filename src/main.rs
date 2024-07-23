@@ -6,16 +6,34 @@ fn handle_client(mut stream: TcpStream) {
         Ok(n) => {
             let request = String::from_utf8_lossy(&buf[..n]);
             println!("Received request: {}", request);
-            match request.as_ref() {
-                "GET /hello HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n" => {
-                    let response = "HTTP/1.1 200 OK\r\nHello, world!";
-                    stream.write_all(response.as_bytes()).unwrap();
-                },
-                _ => {
-                    let response = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
-                    stream.write_all(response.as_bytes()).unwrap();
+
+            // Split the request into lines and get the first line (request line)
+            let mut lines = request.lines();
+            if let Some(request_line) = lines.next() {
+                // Match only the request line
+                match request_line {
+                    "GET /hello HTTP/1.1" => {
+                        let response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, world!";
+                        stream.write_all(response.as_bytes()).unwrap();
+                    },
+                    _ => {
+                        let response = "HTTP/1.1 404 NOT FOUND\r\nContent-Length: 0\r\n\r\n";
+                        stream.write_all(response.as_bytes()).unwrap();
+                    }
                 }
             }
+           // let request = String::from_utf8_lossy(&buf[..n]);
+           // println!("Received request: {}", request);
+           // match request.as_ref() {
+            //    "GET /hello HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n" => {
+            //        let response = "HTTP/1.1 200 OK\r\nHello, world!";
+            //        stream.write_all(response.as_bytes()).unwrap();
+             //   },
+             //   _ => {
+             //       let response = "HTTP/1.1 404 NOT FOUND\r\n\r\n";
+             //       stream.write_all(response.as_bytes()).unwrap();
+             //   }
+         //   }
         },
         Err(e) => {
             println!("Error reading from socket: {}",
